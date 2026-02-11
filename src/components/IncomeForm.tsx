@@ -1,17 +1,34 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Income } from '@/types';
-import { incomeService, monthClassificationService } from '@/services/storage';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Income } from "@/types";
+import { incomeService, monthClassificationService } from "@/services/storage";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface IncomeFormProps {
   open: boolean;
@@ -20,14 +37,21 @@ interface IncomeFormProps {
   editData?: Income;
 }
 
-const INCOME_TYPES = ['Salary', 'Refund', 'Other'] as const;
+const INCOME_TYPES = ["Salary", "Refund", "Other"] as const;
 
-export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFormProps) {
-  const [income, setIncome] = useState(editData?.income || '');
-  const [amount, setAmount] = useState(editData?.amount.toString() || '');
+export function IncomeForm({
+  open,
+  onOpenChange,
+  onSuccess,
+  editData,
+}: IncomeFormProps) {
+  const [income, setIncome] = useState(editData?.income || "");
+  const [amount, setAmount] = useState(editData?.amount.toString() || "");
   const [date, setDate] = useState<Date>(editData?.date || new Date());
-  const [type, setType] = useState<Income['type']>(editData?.type || 'Salary');
-  const [monthClassificationId, setMonthClassificationId] = useState(editData?.monthClassificationId || '');
+  const [type, setType] = useState<Income["type"]>(editData?.type || "Salary");
+  const [monthClassificationId, setMonthClassificationId] = useState(
+    editData?.monthClassificationId || "",
+  );
   const [loading, setLoading] = useState(false);
 
   const months = monthClassificationService.getAll();
@@ -49,13 +73,13 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
     try {
       const incomeAmount = parseFloat(amount);
       if (isNaN(incomeAmount) || incomeAmount <= 0) {
-        toast.error('Please enter a valid amount');
+        toast.error("Please enter a valid amount");
         setLoading(false);
         return;
       }
 
       if (!monthClassificationId) {
-        toast.error('Please select month');
+        toast.error("Please select month");
         setLoading(false);
         return;
       }
@@ -68,7 +92,7 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
           type,
           monthClassificationId,
         });
-        toast.success('Income updated successfully');
+        toast.success("Income updated successfully");
       } else {
         incomeService.create({
           income,
@@ -77,13 +101,13 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
           type,
           monthClassificationId,
         });
-        toast.success('Income created successfully');
+        toast.success("Income created successfully");
       }
       onSuccess();
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      toast.error('Failed to save income');
+      toast.error("Failed to save income");
       console.error(error);
     } finally {
       setLoading(false);
@@ -91,11 +115,11 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
   };
 
   const resetForm = () => {
-    setIncome('');
-    setAmount('');
+    setIncome("");
+    setAmount("");
     setDate(new Date());
-    setType('Salary');
-    setMonthClassificationId('');
+    setType("Salary");
+    setMonthClassificationId("");
   };
 
   return (
@@ -103,7 +127,7 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{editData ? 'Edit' : 'Add'} Income</DialogTitle>
+            <DialogTitle>{editData ? "Edit" : "Add"} Income</DialogTitle>
             <DialogDescription>
               Record a new income and categorize it by type.
             </DialogDescription>
@@ -137,20 +161,31 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn('justify-start text-left font-normal', !date && 'text-muted-foreground')}
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !date && "text-muted-foreground",
+                    )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(d) => d && setDate(d)}
+                    initialFocus
+                  />
                 </PopoverContent>
               </Popover>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="type">Income Type</Label>
-              <Select value={type} onValueChange={(value) => setType(value as Income['type'])}>
+              <Select
+                value={type}
+                onValueChange={(value) => setType(value as Income["type"])}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -165,13 +200,19 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
             </div>
             <div className="grid gap-2">
               <Label htmlFor="month">Month Classification</Label>
-              <Select value={monthClassificationId} onValueChange={setMonthClassificationId} required>
+              <Select
+                value={monthClassificationId}
+                onValueChange={setMonthClassificationId}
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
                   {months.length === 0 ? (
-                    <div className="p-2 text-sm text-muted-foreground">No months available</div>
+                    <div className="p-2 text-sm text-muted-foreground">
+                      No months available
+                    </div>
                   ) : (
                     months.map((month) => (
                       <SelectItem key={month.id} value={month.id}>
@@ -184,11 +225,15 @@ export function IncomeForm({ open, onOpenChange, onSuccess, editData }: IncomeFo
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={loading || months.length === 0}>
-              {loading ? 'Saving...' : editData ? 'Update' : 'Create'}
+              {loading ? "Saving..." : editData ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>

@@ -1,17 +1,38 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Expense } from '@/types';
-import { expenseService, budgetService, monthClassificationService } from '@/services/storage';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Expense } from "@/types";
+import {
+  expenseService,
+  budgetService,
+  monthClassificationService,
+} from "@/services/storage";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ExpenseFormProps {
   open: boolean;
@@ -20,12 +41,19 @@ interface ExpenseFormProps {
   editData?: Expense;
 }
 
-export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: ExpenseFormProps) {
-  const [expense, setExpense] = useState(editData?.expense || '');
-  const [amount, setAmount] = useState(editData?.amount.toString() || '');
+export function ExpenseForm({
+  open,
+  onOpenChange,
+  onSuccess,
+  editData,
+}: ExpenseFormProps) {
+  const [expense, setExpense] = useState(editData?.expense || "");
+  const [amount, setAmount] = useState(editData?.amount.toString() || "");
   const [date, setDate] = useState<Date>(editData?.date || new Date());
-  const [budgetId, setBudgetId] = useState(editData?.budgetId || '');
-  const [monthClassificationId, setMonthClassificationId] = useState(editData?.monthClassificationId || '');
+  const [budgetId, setBudgetId] = useState(editData?.budgetId || "");
+  const [monthClassificationId, setMonthClassificationId] = useState(
+    editData?.monthClassificationId || "",
+  );
   const [loading, setLoading] = useState(false);
 
   const budgets = budgetService.getAll();
@@ -48,13 +76,13 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
     try {
       const expenseAmount = parseFloat(amount);
       if (isNaN(expenseAmount) || expenseAmount <= 0) {
-        toast.error('Please enter a valid amount');
+        toast.error("Please enter a valid amount");
         setLoading(false);
         return;
       }
 
       if (!budgetId || !monthClassificationId) {
-        toast.error('Please select budget and month');
+        toast.error("Please select budget and month");
         setLoading(false);
         return;
       }
@@ -67,7 +95,7 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
           budgetId,
           monthClassificationId,
         });
-        toast.success('Expense updated successfully');
+        toast.success("Expense updated successfully");
       } else {
         expenseService.create({
           expense,
@@ -76,13 +104,13 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
           budgetId,
           monthClassificationId,
         });
-        toast.success('Expense created successfully');
+        toast.success("Expense created successfully");
       }
       onSuccess();
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      toast.error('Failed to save expense');
+      toast.error("Failed to save expense");
       console.error(error);
     } finally {
       setLoading(false);
@@ -90,11 +118,11 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
   };
 
   const resetForm = () => {
-    setExpense('');
-    setAmount('');
+    setExpense("");
+    setAmount("");
     setDate(new Date());
-    setBudgetId('');
-    setMonthClassificationId('');
+    setBudgetId("");
+    setMonthClassificationId("");
   };
 
   return (
@@ -102,7 +130,7 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{editData ? 'Edit' : 'Add'} Expense</DialogTitle>
+            <DialogTitle>{editData ? "Edit" : "Add"} Expense</DialogTitle>
             <DialogDescription>
               Record a new expense and assign it to a budget category.
             </DialogDescription>
@@ -136,14 +164,22 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn('justify-start text-left font-normal', !date && 'text-muted-foreground')}
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !date && "text-muted-foreground",
+                    )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(d) => d && setDate(d)}
+                    initialFocus
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -155,7 +191,9 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
                 </SelectTrigger>
                 <SelectContent>
                   {budgets.length === 0 ? (
-                    <div className="p-2 text-sm text-muted-foreground">No budget categories available</div>
+                    <div className="p-2 text-sm text-muted-foreground">
+                      No budget categories available
+                    </div>
                   ) : (
                     budgets.map((budget) => (
                       <SelectItem key={budget.id} value={budget.id}>
@@ -168,13 +206,19 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
             </div>
             <div className="grid gap-2">
               <Label htmlFor="month">Month Classification</Label>
-              <Select value={monthClassificationId} onValueChange={setMonthClassificationId} required>
+              <Select
+                value={monthClassificationId}
+                onValueChange={setMonthClassificationId}
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
                   {months.length === 0 ? (
-                    <div className="p-2 text-sm text-muted-foreground">No months available</div>
+                    <div className="p-2 text-sm text-muted-foreground">
+                      No months available
+                    </div>
                   ) : (
                     months.map((month) => (
                       <SelectItem key={month.id} value={month.id}>
@@ -187,11 +231,18 @@ export function ExpenseForm({ open, onOpenChange, onSuccess, editData }: Expense
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || budgets.length === 0 || months.length === 0}>
-              {loading ? 'Saving...' : editData ? 'Update' : 'Create'}
+            <Button
+              type="submit"
+              disabled={loading || budgets.length === 0 || months.length === 0}
+            >
+              {loading ? "Saving..." : editData ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>
