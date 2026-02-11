@@ -26,6 +26,10 @@ import {
 import type { MonthClassification, Expense, Income } from "@/types";
 import { format } from "date-fns";
 
+type Transaction =
+  | (Expense & { transactionType: "expense" })
+  | (Income & { transactionType: "income" });
+
 export function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [months, setMonths] = useState<MonthClassification[]>([]);
@@ -65,9 +69,15 @@ export function Dashboard() {
   const budgetUsed = totalBudget > 0 ? (totalExpense / totalBudget) * 100 : 0;
 
   // Recent transactions (last 5)
-  const allTransactions = [
-    ...filteredExpenses.map((e) => ({ ...e, type: "expense" as const })),
-    ...filteredIncomes.map((i) => ({ ...i, type: "income" as const })),
+  const allTransactions: Transaction[] = [
+    ...filteredExpenses.map((e) => ({
+      ...e,
+      transactionType: "expense" as const,
+    })),
+    ...filteredIncomes.map((i) => ({
+      ...i,
+      transactionType: "income" as const,
+    })),
   ]
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 5);
@@ -85,7 +95,7 @@ export function Dashboard() {
         </div>
         {months.length > 0 && (
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-50">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -186,9 +196,9 @@ export function Dashboard() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`p-2 rounded-lg ${transaction.type === "income" ? "bg-emerald-500/10" : "bg-rose-500/10"}`}
+                      className={`p-2 rounded-lg ${transaction.transactionType === "income" ? "bg-emerald-500/10" : "bg-rose-500/10"}`}
                     >
-                      {transaction.type === "income" ? (
+                      {transaction.transactionType === "income" ? (
                         <ArrowUpRight className="h-4 w-4 text-emerald-500" />
                       ) : (
                         <ArrowDownRight className="h-4 w-4 text-rose-500" />
@@ -204,12 +214,12 @@ export function Dashboard() {
                         <p className="text-xs text-muted-foreground">
                           {format(transaction.date, "dd MMM yyyy")}
                         </p>
-                        {transaction.type === "expense" && (
+                        {transaction.transactionType === "expense" && (
                           <Badge variant="outline" className="text-xs">
                             {getBudgetName((transaction as Expense).budgetId)}
                           </Badge>
                         )}
-                        {transaction.type === "income" && (
+                        {transaction.transactionType === "income" && (
                           <Badge variant="outline" className="text-xs">
                             {(transaction as Income).type}
                           </Badge>
@@ -218,9 +228,9 @@ export function Dashboard() {
                     </div>
                   </div>
                   <div
-                    className={`text-lg font-semibold ${transaction.type === "income" ? "text-emerald-500" : "text-rose-500"}`}
+                    className={`text-lg font-semibold ${transaction.transactionType === "income" ? "text-emerald-500" : "text-rose-500"}`}
                   >
-                    {transaction.type === "income" ? "+" : "-"}RM{" "}
+                    {transaction.transactionType === "income" ? "+" : "-"}RM{" "}
                     {transaction.amount.toFixed(2)}
                   </div>
                 </div>
