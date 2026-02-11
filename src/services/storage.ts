@@ -8,17 +8,24 @@ const STORAGE_KEYS = {
   INCOMES: "expense_tracker_incomes",
 } as const;
 
+// Type for raw storage items with date strings
+interface RawStorageItem {
+  date?: string | Date;
+  createdAt: string | Date;
+  [key: string]: unknown;
+}
+
 // Generic storage helpers
 const getFromStorage = <T>(key: string): T[] => {
   try {
     const data = localStorage.getItem(key);
     if (!data) return [];
-    const parsed = JSON.parse(data);
-    return parsed.map((item: any) => ({
+    const parsed = JSON.parse(data) as RawStorageItem[];
+    return parsed.map((item) => ({
       ...item,
       date: item.date ? new Date(item.date) : undefined,
       createdAt: new Date(item.createdAt),
-    }));
+    })) as T[];
   } catch (error) {
     console.error(`Error reading from storage (${key}):`, error);
     return [];

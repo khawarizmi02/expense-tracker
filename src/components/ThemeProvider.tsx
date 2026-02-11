@@ -16,7 +16,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return stored || 'system';
   });
 
-  const [actualTheme, setActualTheme] = useState<'dark' | 'light'>('dark');
+  const [actualTheme, setActualTheme] = useState<'dark' | 'light'>(() => {
+    if (theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return theme === 'dark' ? 'dark' : 'light';
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -25,9 +30,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
-      setActualTheme(systemTheme);
     } else {
       root.classList.add(theme);
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setActualTheme(systemTheme);
+    } else {
       setActualTheme(theme);
     }
   }, [theme]);
@@ -42,10 +54,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e: MediaQueryListEvent) => {
-      setActualTheme(e.matches ? 'dark' : 'light');
+      const newTheme = e.matches ? 'dark' : 'light';
+      setActualTheme(newTheme);
       const root = window.document.documentElement;
       root.classList.remove('light', 'dark');
-      root.classList.add(e.matches ? 'dark' : 'light');
+      root.classList.add(newTheme);
     };
 
     mediaQuery.addEventListener('change', handler);

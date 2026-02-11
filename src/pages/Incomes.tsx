@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, TrendingUp, Edit, Trash2, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Income, MonthClassification } from '@/types';
+import type { Income, MonthClassification } from '@/types';
 import { incomeService, monthClassificationService } from '@/services/storage';
 import { IncomeForm } from '@/components/IncomeForm';
 import { toast } from 'sonner';
@@ -43,17 +43,17 @@ export function Incomes() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>('all');
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     const incomeData = incomeService.getAll();
     const monthData = monthClassificationService.getAll();
 
     setIncomes(incomeData.sort((a, b) => b.date.getTime() - a.date.getTime()));
     setMonths(monthData.sort((a, b) => b.monthNum.localeCompare(a.monthNum)));
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const getMonthName = (monthId: string) => {
     return months.find((m) => m.id === monthId)?.month || 'Unknown';

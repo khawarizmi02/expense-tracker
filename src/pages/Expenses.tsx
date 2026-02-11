@@ -48,7 +48,7 @@ export function Expenses() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>("all");
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     const expenseData = expenseService.getAll();
     const budgetData = budgetService.getAll();
     const monthData = monthClassificationService.getAll();
@@ -58,11 +58,11 @@ export function Expenses() {
     );
     setBudgets(budgetData);
     setMonths(monthData.sort((a, b) => b.monthNum.localeCompare(a.monthNum)));
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const getBudgetName = (budgetId: string) => {
     return budgets.find((b) => b.id === budgetId)?.category || "Unknown";
