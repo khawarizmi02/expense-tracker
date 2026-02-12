@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Expense } from "@/types";
+import type { Expense, Budget, MonthClassification } from "@/types";
 import {
   expenseService,
   budgetService,
@@ -55,9 +55,22 @@ export function ExpenseForm({
     editData?.monthClassificationId || "",
   );
   const [loading, setLoading] = useState(false);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [months, setMonths] = useState<MonthClassification[]>([]);
 
-  const budgets = budgetService.getAll();
-  const months = monthClassificationService.getAll();
+  useEffect(() => {
+    const loadData = async () => {
+      const [budgetData, monthData] = await Promise.all([
+        budgetService.getAll(),
+        monthClassificationService.getAll(),
+      ]);
+      setBudgets(budgetData);
+      setMonths(monthData);
+    };
+    if (open) {
+      loadData();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (editData) {
@@ -88,7 +101,7 @@ export function ExpenseForm({
       }
 
       if (editData) {
-        expenseService.update(editData.id, {
+        await expenseService.update(editData.id, {
           expense,
           amount: expenseAmount,
           date,
@@ -97,7 +110,7 @@ export function ExpenseForm({
         });
         toast.success("Expense updated successfully");
       } else {
-        expenseService.create({
+        await expenseService.create({
           expense,
           amount: expenseAmount,
           date,

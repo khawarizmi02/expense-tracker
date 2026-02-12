@@ -1,0 +1,357 @@
+{
+  "name": "Expense Tracker - Month Classifications API",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "=={{ $('Webhook').item.json.method }}",
+        "path": "month-classifications",
+        "options": {
+          "responseMode": "responseNode"
+        }
+      },
+      "id": "webhook-month-classifications",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "month-classifications-webhook"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "headerAuth": "={{$node[\"Webhook\"].json[\"headers\"][\"x-api-key\"]}}"
+      },
+      "id": "check-auth",
+      "name": "Check Auth",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook\"].json[\"method\"]}}",
+              "value2": "GET"
+            }
+          ]
+        }
+      },
+      "id": "check-method-get",
+      "name": "Is GET?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook\"].json[\"method\"]}}",
+              "value2": "POST"
+            }
+          ]
+        }
+      },
+      "id": "check-method-post",
+      "name": "Is POST?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook\"].json[\"method\"]}}",
+              "value2": "PATCH"
+            }
+          ]
+        }
+      },
+      "id": "check-method-patch",
+      "name": "Is PATCH?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Webhook\"].json[\"method\"]}}",
+              "value2": "DELETE"
+            }
+          ]
+        }
+      },
+      "id": "check-method-delete",
+      "name": "Is DELETE?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 800]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": "2fec5833e37681e98535c60e08dd3cf5"
+      },
+      "id": "notion-get-all",
+      "name": "Notion - Get All",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [850, 200],
+      "credentials": {
+        "notionApi": {
+          "id": "1",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": "2fec5833e37681e98535c60e08dd3cf5",
+        "title": "={{$node[\"Webhook\"].json[\"body\"][\"month\"]}}",
+        "properties": {
+          "customProperty": [
+            {
+              "key": "month",
+              "textContent": "={{$node[\"Webhook\"].json[\"body\"][\"month\"]}}"
+            },
+            {
+              "key": "monthNum",
+              "textContent": "={{$node[\"Webhook\"].json[\"body\"][\"monthNum\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "notion-create",
+      "name": "Notion - Create",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [850, 400],
+      "credentials": {
+        "notionApi": {
+          "id": "1",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": "={{$node[\"Webhook\"].json[\"params\"][\"id\"]}}",
+        "properties": {
+          "customProperty": [
+            {
+              "key": "month",
+              "textContent": "={{$node[\"Webhook\"].json[\"body\"][\"month\"]}}"
+            },
+            {
+              "key": "monthNum",
+              "textContent": "={{$node[\"Webhook\"].json[\"body\"][\"monthNum\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "notion-update",
+      "name": "Notion - Update",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [850, 600],
+      "credentials": {
+        "notionApi": {
+          "id": "1",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "delete",
+        "pageId": "={{$node[\"Webhook\"].json[\"params\"][\"id\"]}}"
+      },
+      "id": "notion-delete",
+      "name": "Notion - Delete",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [850, 800],
+      "credentials": {
+        "notionApi": {
+          "id": "1",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "respond-success",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 401,
+        "responseBody": "={{ { \"error\": \"Unauthorized\" } }}"
+      },
+      "id": "respond-unauthorized",
+      "name": "Respond Unauthorized",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [650, 1000]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Auth": {
+      "main": [
+        [
+          {
+            "node": "Is GET?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is POST?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is PATCH?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Is DELETE?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is GET?": {
+      "main": [
+        [
+          {
+            "node": "Notion - Get All",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is POST?": {
+      "main": [
+        [
+          {
+            "node": "Notion - Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is PATCH?": {
+      "main": [
+        [
+          {
+            "node": "Notion - Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is DELETE?": {
+      "main": [
+        [
+          {
+            "node": "Notion - Delete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion - Get All": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion - Create": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion - Update": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notion - Delete": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

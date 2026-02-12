@@ -48,10 +48,12 @@ export function Expenses() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>("all");
 
-  const loadData = useCallback(() => {
-    const expenseData = expenseService.getAll();
-    const budgetData = budgetService.getAll();
-    const monthData = monthClassificationService.getAll();
+  const loadData = useCallback(async () => {
+    const [expenseData, budgetData, monthData] = await Promise.all([
+      expenseService.getAll(),
+      budgetService.getAll(),
+      monthClassificationService.getAll(),
+    ]);
 
     setExpenses(
       expenseData.sort((a, b) => b.date.getTime() - a.date.getTime()),
@@ -89,9 +91,9 @@ export function Expenses() {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingId) {
-      expenseService.delete(deletingId);
+      await expenseService.delete(deletingId);
       toast.success("Expense deleted");
       loadData();
       setDeleteDialogOpen(false);

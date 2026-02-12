@@ -1,4 +1,15 @@
 import type { MonthClassification, Budget, Expense, Income } from "@/types";
+import {
+  monthClassificationApiService,
+  budgetApiService,
+  expenseApiService,
+  incomeApiService,
+} from "./api";
+
+// Storage mode: 'localStorage' or 'api'
+const STORAGE_MODE = (import.meta.env.VITE_STORAGE_MODE || "localStorage") as
+  | "localStorage"
+  | "api";
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -16,7 +27,7 @@ interface RawStorageItem {
 }
 
 // Generic storage helpers
-const getFromStorage = <T>(key: string): T[] => {
+function getFromStorage<T>(key: string): T[] {
   try {
     const data = localStorage.getItem(key);
     if (!data) return [];
@@ -30,37 +41,46 @@ const getFromStorage = <T>(key: string): T[] => {
     console.error(`Error reading from storage (${key}):`, error);
     return [];
   }
-};
+}
 
-const saveToStorage = <T>(key: string, data: T[]): void => {
+function saveToStorage<T>(key: string, data: T[]): void {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
     console.error(`Error saving to storage (${key}):`, error);
   }
-};
+}
 
-const generateId = (): string => {
+function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
+}
 
 // Month Classification Service
 export const monthClassificationService = {
-  getAll: (): MonthClassification[] => {
+  getAll: async (): Promise<MonthClassification[]> => {
+    if (STORAGE_MODE === "api") {
+      return monthClassificationApiService.getAll();
+    }
     return getFromStorage<MonthClassification>(
       STORAGE_KEYS.MONTH_CLASSIFICATIONS,
     );
   },
 
-  getById: (id: string): MonthClassification | undefined => {
-    const items = monthClassificationService.getAll();
+  getById: async (id: string): Promise<MonthClassification | undefined> => {
+    if (STORAGE_MODE === "api") {
+      return monthClassificationApiService.getById(id);
+    }
+    const items = await monthClassificationService.getAll();
     return items.find((item) => item.id === id);
   },
 
-  create: (
+  create: async (
     data: Omit<MonthClassification, "id" | "createdAt">,
-  ): MonthClassification => {
-    const items = monthClassificationService.getAll();
+  ): Promise<MonthClassification> => {
+    if (STORAGE_MODE === "api") {
+      return monthClassificationApiService.create(data);
+    }
+    const items = await monthClassificationService.getAll();
     const newItem: MonthClassification = {
       ...data,
       id: generateId(),
@@ -71,11 +91,14 @@ export const monthClassificationService = {
     return newItem;
   },
 
-  update: (
+  update: async (
     id: string,
     data: Partial<Omit<MonthClassification, "id" | "createdAt">>,
-  ): MonthClassification | null => {
-    const items = monthClassificationService.getAll();
+  ): Promise<MonthClassification | null> => {
+    if (STORAGE_MODE === "api") {
+      return monthClassificationApiService.update(id, data);
+    }
+    const items = await monthClassificationService.getAll();
     const index = items.findIndex((item) => item.id === id);
     if (index === -1) return null;
     items[index] = { ...items[index], ...data };
@@ -83,8 +106,11 @@ export const monthClassificationService = {
     return items[index];
   },
 
-  delete: (id: string): boolean => {
-    const items = monthClassificationService.getAll();
+  delete: async (id: string): Promise<boolean> => {
+    if (STORAGE_MODE === "api") {
+      return monthClassificationApiService.delete(id);
+    }
+    const items = await monthClassificationService.getAll();
     const filtered = items.filter((item) => item.id !== id);
     if (filtered.length === items.length) return false;
     saveToStorage(STORAGE_KEYS.MONTH_CLASSIFICATIONS, filtered);
@@ -94,17 +120,26 @@ export const monthClassificationService = {
 
 // Budget Service
 export const budgetService = {
-  getAll: (): Budget[] => {
+  getAll: async (): Promise<Budget[]> => {
+    if (STORAGE_MODE === "api") {
+      return budgetApiService.getAll();
+    }
     return getFromStorage<Budget>(STORAGE_KEYS.BUDGETS);
   },
 
-  getById: (id: string): Budget | undefined => {
-    const items = budgetService.getAll();
+  getById: async (id: string): Promise<Budget | undefined> => {
+    if (STORAGE_MODE === "api") {
+      return budgetApiService.getById(id);
+    }
+    const items = await budgetService.getAll();
     return items.find((item) => item.id === id);
   },
 
-  create: (data: Omit<Budget, "id" | "createdAt">): Budget => {
-    const items = budgetService.getAll();
+  create: async (data: Omit<Budget, "id" | "createdAt">): Promise<Budget> => {
+    if (STORAGE_MODE === "api") {
+      return budgetApiService.create(data);
+    }
+    const items = await budgetService.getAll();
     const newItem: Budget = {
       ...data,
       id: generateId(),
@@ -115,11 +150,14 @@ export const budgetService = {
     return newItem;
   },
 
-  update: (
+  update: async (
     id: string,
     data: Partial<Omit<Budget, "id" | "createdAt">>,
-  ): Budget | null => {
-    const items = budgetService.getAll();
+  ): Promise<Budget | null> => {
+    if (STORAGE_MODE === "api") {
+      return budgetApiService.update(id, data);
+    }
+    const items = await budgetService.getAll();
     const index = items.findIndex((item) => item.id === id);
     if (index === -1) return null;
     items[index] = { ...items[index], ...data };
@@ -127,8 +165,11 @@ export const budgetService = {
     return items[index];
   },
 
-  delete: (id: string): boolean => {
-    const items = budgetService.getAll();
+  delete: async (id: string): Promise<boolean> => {
+    if (STORAGE_MODE === "api") {
+      return budgetApiService.delete(id);
+    }
+    const items = await budgetService.getAll();
     const filtered = items.filter((item) => item.id !== id);
     if (filtered.length === items.length) return false;
     saveToStorage(STORAGE_KEYS.BUDGETS, filtered);
@@ -138,29 +179,46 @@ export const budgetService = {
 
 // Expense Service
 export const expenseService = {
-  getAll: (): Expense[] => {
+  getAll: async (): Promise<Expense[]> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.getAll();
+    }
     return getFromStorage<Expense>(STORAGE_KEYS.EXPENSES);
   },
 
-  getById: (id: string): Expense | undefined => {
-    const items = expenseService.getAll();
+  getById: async (id: string): Promise<Expense | undefined> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.getById(id);
+    }
+    const items = await expenseService.getAll();
     return items.find((item) => item.id === id);
   },
 
-  getByMonthClassification: (monthClassificationId: string): Expense[] => {
-    const items = expenseService.getAll();
+  getByMonthClassification: async (
+    monthClassificationId: string,
+  ): Promise<Expense[]> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.getByMonthClassification(monthClassificationId);
+    }
+    const items = await expenseService.getAll();
     return items.filter(
       (item) => item.monthClassificationId === monthClassificationId,
     );
   },
 
-  getByBudget: (budgetId: string): Expense[] => {
-    const items = expenseService.getAll();
+  getByBudget: async (budgetId: string): Promise<Expense[]> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.getByBudget(budgetId);
+    }
+    const items = await expenseService.getAll();
     return items.filter((item) => item.budgetId === budgetId);
   },
 
-  create: (data: Omit<Expense, "id" | "createdAt">): Expense => {
-    const items = expenseService.getAll();
+  create: async (data: Omit<Expense, "id" | "createdAt">): Promise<Expense> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.create(data);
+    }
+    const items = await expenseService.getAll();
     const newItem: Expense = {
       ...data,
       id: generateId(),
@@ -171,11 +229,14 @@ export const expenseService = {
     return newItem;
   },
 
-  update: (
+  update: async (
     id: string,
     data: Partial<Omit<Expense, "id" | "createdAt">>,
-  ): Expense | null => {
-    const items = expenseService.getAll();
+  ): Promise<Expense | null> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.update(id, data);
+    }
+    const items = await expenseService.getAll();
     const index = items.findIndex((item) => item.id === id);
     if (index === -1) return null;
     items[index] = { ...items[index], ...data };
@@ -183,8 +244,11 @@ export const expenseService = {
     return items[index];
   },
 
-  delete: (id: string): boolean => {
-    const items = expenseService.getAll();
+  delete: async (id: string): Promise<boolean> => {
+    if (STORAGE_MODE === "api") {
+      return expenseApiService.delete(id);
+    }
+    const items = await expenseService.getAll();
     const filtered = items.filter((item) => item.id !== id);
     if (filtered.length === items.length) return false;
     saveToStorage(STORAGE_KEYS.EXPENSES, filtered);
@@ -194,29 +258,46 @@ export const expenseService = {
 
 // Income Service
 export const incomeService = {
-  getAll: (): Income[] => {
+  getAll: async (): Promise<Income[]> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.getAll();
+    }
     return getFromStorage<Income>(STORAGE_KEYS.INCOMES);
   },
 
-  getById: (id: string): Income | undefined => {
-    const items = incomeService.getAll();
+  getById: async (id: string): Promise<Income | undefined> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.getById(id);
+    }
+    const items = await incomeService.getAll();
     return items.find((item) => item.id === id);
   },
 
-  getByMonthClassification: (monthClassificationId: string): Income[] => {
-    const items = incomeService.getAll();
+  getByMonthClassification: async (
+    monthClassificationId: string,
+  ): Promise<Income[]> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.getByMonthClassification(monthClassificationId);
+    }
+    const items = await incomeService.getAll();
     return items.filter(
       (item) => item.monthClassificationId === monthClassificationId,
     );
   },
 
-  getByType: (type: Income["type"]): Income[] => {
-    const items = incomeService.getAll();
+  getByType: async (type: Income["type"]): Promise<Income[]> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.getByType(type);
+    }
+    const items = await incomeService.getAll();
     return items.filter((item) => item.type === type);
   },
 
-  create: (data: Omit<Income, "id" | "createdAt">): Income => {
-    const items = incomeService.getAll();
+  create: async (data: Omit<Income, "id" | "createdAt">): Promise<Income> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.create(data);
+    }
+    const items = await incomeService.getAll();
     const newItem: Income = {
       ...data,
       id: generateId(),
@@ -227,11 +308,14 @@ export const incomeService = {
     return newItem;
   },
 
-  update: (
+  update: async (
     id: string,
     data: Partial<Omit<Income, "id" | "createdAt">>,
-  ): Income | null => {
-    const items = incomeService.getAll();
+  ): Promise<Income | null> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.update(id, data);
+    }
+    const items = await incomeService.getAll();
     const index = items.findIndex((item) => item.id === id);
     if (index === -1) return null;
     items[index] = { ...items[index], ...data };
@@ -239,8 +323,11 @@ export const incomeService = {
     return items[index];
   },
 
-  delete: (id: string): boolean => {
-    const items = incomeService.getAll();
+  delete: async (id: string): Promise<boolean> => {
+    if (STORAGE_MODE === "api") {
+      return incomeApiService.delete(id);
+    }
+    const items = await incomeService.getAll();
     const filtered = items.filter((item) => item.id !== id);
     if (filtered.length === items.length) return false;
     saveToStorage(STORAGE_KEYS.INCOMES, filtered);

@@ -49,9 +49,11 @@ export function Incomes() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>("all");
 
-  const loadData = useCallback(() => {
-    const incomeData = incomeService.getAll();
-    const monthData = monthClassificationService.getAll();
+  const loadData = useCallback(async () => {
+    const [incomeData, monthData] = await Promise.all([
+      incomeService.getAll(),
+      monthClassificationService.getAll(),
+    ]);
 
     setIncomes(incomeData.sort((a, b) => b.date.getTime() - a.date.getTime()));
     setMonths(monthData.sort((a, b) => b.monthNum.localeCompare(a.monthNum)));
@@ -82,9 +84,9 @@ export function Incomes() {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingId) {
-      incomeService.delete(deletingId);
+      await incomeService.delete(deletingId);
       toast.success("Income deleted");
       loadData();
       setDeleteDialogOpen(false);

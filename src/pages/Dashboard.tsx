@@ -36,17 +36,27 @@ export function Dashboard() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [totalBudget, setTotalBudget] = useState(0);
+  const [budgetMap, setBudgetMap] = useState<Record<string, string>>({});
 
-  const loadData = useCallback(() => {
-    const monthData = monthClassificationService.getAll();
-    const expenseData = expenseService.getAll();
-    const incomeData = incomeService.getAll();
-    const budgetData = budgetService.getAll();
+  const loadData = useCallback(async () => {
+    const [monthData, expenseData, incomeData, budgetData] = await Promise.all([
+      monthClassificationService.getAll(),
+      expenseService.getAll(),
+      incomeService.getAll(),
+      budgetService.getAll(),
+    ]);
 
     setMonths(monthData.sort((a, b) => b.monthNum.localeCompare(a.monthNum)));
     setExpenses(expenseData);
     setIncomes(incomeData);
     setTotalBudget(budgetData.reduce((sum, b) => sum + b.monthlyBudget, 0));
+
+    // Create budget ID to category name mapping
+    const budgetMapping: Record<string, string> = {};
+    budgetData.forEach((budget) => {
+      budgetMapping[budget.id] = budget.category;
+    });
+    setBudgetMap(budgetMapping);
   }, []);
 
   useEffect(() => {
@@ -83,7 +93,7 @@ export function Dashboard() {
     .slice(0, 5);
 
   const getBudgetName = (budgetId: string) => {
-    return budgetService.getById(budgetId)?.category || "Unknown";
+    return budgetMap[budgetId] || "Unknown";
   };
 
   return (

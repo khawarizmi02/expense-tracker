@@ -26,8 +26,8 @@ export function Months() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const loadMonths = useCallback(() => {
-    const data = monthClassificationService.getAll();
+  const loadMonths = useCallback(async () => {
+    const data = await monthClassificationService.getAll();
     setMonths(data.sort((a, b) => b.monthNum.localeCompare(a.monthNum)));
   }, []);
 
@@ -45,9 +45,9 @@ export function Months() {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingId) {
-      monthClassificationService.delete(deletingId);
+      await monthClassificationService.delete(deletingId);
       toast.success("Month classification deleted");
       loadMonths();
       setDeleteDialogOpen(false);

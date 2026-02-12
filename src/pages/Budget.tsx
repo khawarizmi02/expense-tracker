@@ -32,9 +32,11 @@ export function Budget() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const loadBudgets = useCallback(() => {
-    const budgetData = budgetService.getAll();
-    const expenses = expenseService.getAll();
+  const loadBudgets = useCallback(async () => {
+    const [budgetData, expenses] = await Promise.all([
+      budgetService.getAll(),
+      expenseService.getAll(),
+    ]);
 
     const budgetsWithSpending: BudgetWithSpending[] = budgetData.map(
       (budget) => {
@@ -74,9 +76,9 @@ export function Budget() {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingId) {
-      budgetService.delete(deletingId);
+      await budgetService.delete(deletingId);
       toast.success("Budget category deleted");
       loadBudgets();
       setDeleteDialogOpen(false);

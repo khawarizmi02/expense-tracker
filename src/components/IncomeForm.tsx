@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Income } from "@/types";
+import type { Income, MonthClassification } from "@/types";
 import { incomeService, monthClassificationService } from "@/services/storage";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -53,8 +53,17 @@ export function IncomeForm({
     editData?.monthClassificationId || "",
   );
   const [loading, setLoading] = useState(false);
+  const [months, setMonths] = useState<MonthClassification[]>([]);
 
-  const months = monthClassificationService.getAll();
+  useEffect(() => {
+    const loadMonths = async () => {
+      const monthData = await monthClassificationService.getAll();
+      setMonths(monthData);
+    };
+    if (open) {
+      loadMonths();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (editData) {
@@ -85,7 +94,7 @@ export function IncomeForm({
       }
 
       if (editData) {
-        incomeService.update(editData.id, {
+        await incomeService.update(editData.id, {
           income,
           amount: incomeAmount,
           date,
@@ -94,7 +103,7 @@ export function IncomeForm({
         });
         toast.success("Income updated successfully");
       } else {
-        incomeService.create({
+        await incomeService.create({
           income,
           amount: incomeAmount,
           date,

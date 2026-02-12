@@ -47,10 +47,28 @@ bun run build
 3. Add Expenses & Incomes
 4. View Dashboard
 
-## 🔄 API Migration Ready
+## 🔄 Backend Integration
 
-Currently uses localStorage. Easy to migrate to n8n or any API - service layer abstraction is ready!
+**Dual Mode Support:**
+- 🔌 **localStorage** - Offline-first (default)
+- ☁️ **n8n + Notion** - Cloud sync with workflow automation
+
+### Setup n8n Integration
+
+See detailed guides:
+- **[QUICK-START.md](QUICK-START.md)** - Overview & quick reference
+- **[N8N-SETUP-GUIDE.md](N8N-SETUP-GUIDE.md)** - Step-by-step n8n setup
+- **[NGINX-PRODUCTION-SETUP.md](NGINX-PRODUCTION-SETUP.md)** - VPS deployment
+
+**Quick switch:**
+```env
+# .env.local
+VITE_STORAGE_MODE=api  # or 'localStorage'
+VITE_N8N_BASE_URL=http://localhost:5678
+VITE_API_KEY=your-api-key
+```
 
 ## 📄 License
 
 MIT License
+
